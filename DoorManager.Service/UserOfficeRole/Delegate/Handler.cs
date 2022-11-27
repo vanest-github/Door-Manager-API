@@ -122,6 +122,6 @@ public class Handler : IRequestHandler<RequestModel, ServiceResult<Entity.UserOf
 
         var toRole = (await this._bus.SendAsync(new Role.Get.ById.RequestModel(toRoleId), cancellationToken))?.Data;
 
-        return toRole is { } && toRole.IsActive && fromRoles.Any(x => x.RolePriority >= toRole.RolePriority);
+        return toRole is { } && toRole.IsActive && fromRoles.Any(x => x.RolePriority <= toRole.RolePriority);
     }
 }

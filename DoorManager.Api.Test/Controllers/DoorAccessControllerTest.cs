@@ -1,29 +1,24 @@
-using System;
 using System.Linq;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DoorManager.Api.ApiResponses;
 using DoorManager.Api.Controllers;
-using DoorManager.Entity.Configurations;
+using DoorManager.Entity;
 using DoorManager.Entity.DTO;
 using DoorManager.Entity.Enum;
 using DoorManager.Service.Infrastructure;
 using DoorManager.Service.Infrastructure.Interfaces;
+using DoorManager.Storage.Interface.Commands;
 using DoorManager.Storage.Interface.Queries;
-using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using DoorManager.Storage.Interface.Commands;
-using DoorManager.Entity;
-using System.Threading;
 
 namespace DoorManager.Api.Test.Controllers;
 
@@ -35,8 +30,6 @@ public class DoorAccessControllerTest
     private Mock<ILogger<IBus>> loggerHandler;
     private Mock<IDoorAccessQueryRepository> doorAccessQueryRepoMock;
     private Mock<IActivityCommandRepository> activityCommandRepoMock;
-    private Mock<IConfiguration> configurationMock;
-    private Mock<IOptions<GlobalConfiguration>> globalConfigurationMock;
     private Randomizer randomizer;
 
     [SetUp]
@@ -46,8 +39,6 @@ public class DoorAccessControllerTest
         loggerHandler = new Mock<ILogger<IBus>>();
         doorAccessQueryRepoMock = new Mock<IDoorAccessQueryRepository>();
         activityCommandRepoMock = new Mock<IActivityCommandRepository>();
-        configurationMock = new Mock<IConfiguration>();
-        globalConfigurationMock = new Mock<IOptions<GlobalConfiguration>>();
         randomizer = TestContext.CurrentContext.Random;
 
         var services = new ServiceCollection();
@@ -56,8 +47,6 @@ public class DoorAccessControllerTest
         services.AddScoped(sp => loggerHandler.Object);
         services.AddScoped(sp => doorAccessQueryRepoMock.Object);
         services.AddScoped(sp => activityCommandRepoMock.Object);
-        services.AddScoped(sp => configurationMock.Object);
-        services.AddScoped(sp => globalConfigurationMock.Object);
 
         services.AddMediatR(typeof(Service.DoorAccess.Unlock.Handler));
         services.AddMediatR(typeof(Service.DoorAccess.Self.Handler));

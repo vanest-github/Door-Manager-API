@@ -1,29 +1,25 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using DoorManager.Api.ApiResponses;
 using DoorManager.Api.Controllers;
-using DoorManager.Entity.Configurations;
+using DoorManager.Entity;
 using DoorManager.Entity.DTO;
 using DoorManager.Entity.Enum;
 using DoorManager.Service.Infrastructure;
 using DoorManager.Service.Infrastructure.Interfaces;
+using DoorManager.Storage.Interface.Commands;
 using DoorManager.Storage.Interface.Queries;
-using FluentAssertions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
-using DoorManager.Storage.Interface.Commands;
-using DoorManager.Entity;
-using System.Threading;
 
 namespace DoorManager.Api.Test.Controllers;
 
@@ -37,8 +33,6 @@ public class AccessDelegationControllerTest
     private Mock<IRoleQueryRepository> roleQueryRepoMock;
     private Mock<IUserOfficeRoleCommandRepository> userOfficeRoleCommandRepoMock;
     private Mock<IActivityCommandRepository> activityCommandRepoMock;
-    private Mock<IConfiguration> configurationMock;
-    private Mock<IOptions<GlobalConfiguration>> globalConfigurationMock;
     private Randomizer randomizer;
 
     [SetUp]
@@ -50,8 +44,6 @@ public class AccessDelegationControllerTest
         roleQueryRepoMock = new Mock<IRoleQueryRepository>();
         userOfficeRoleCommandRepoMock = new Mock<IUserOfficeRoleCommandRepository>();
         activityCommandRepoMock = new Mock<IActivityCommandRepository>();
-        configurationMock = new Mock<IConfiguration>();
-        globalConfigurationMock = new Mock<IOptions<GlobalConfiguration>>();
         randomizer = TestContext.CurrentContext.Random;
 
         var services = new ServiceCollection();
@@ -62,8 +54,6 @@ public class AccessDelegationControllerTest
         services.AddScoped(sp => roleQueryRepoMock.Object);
         services.AddScoped(sp => userOfficeRoleCommandRepoMock.Object);
         services.AddScoped(sp => activityCommandRepoMock.Object);
-        services.AddScoped(sp => configurationMock.Object);
-        services.AddScoped(sp => globalConfigurationMock.Object);
 
         services.AddMediatR(typeof(Service.UserOfficeRole.Delegate.Handler));
         services.AddMediatR(typeof(Service.UserOfficeRole.Get.ByUserIds.Handler));
@@ -90,8 +80,8 @@ public class AccessDelegationControllerTest
         var toRole = new Role { RoleId = dto.RoleId, RolePriority = randomizer.Next(), IsActive = true };
         var activeUserRoleDto = new[]
         {
-            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.IssuingUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority + 1 },
-            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.TargetUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority - 1 },
+            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.IssuingUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority - 1 },
+            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.TargetUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority + 1 },
         };
         var userOfficeRole = new UserOfficeRole { UserOfficeRoleId = randomizer.NextInt64(), OfficeId = dto.OfficeId, UserId = dto.IssuingUserId };
 
@@ -120,8 +110,8 @@ public class AccessDelegationControllerTest
         var toRole = new Role { RoleId = dto.RoleId, RolePriority = randomizer.Next(), IsActive = true };
         var activeUserRoleDto = new[]
         {
-            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.IssuingUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority - 1 },
-            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.TargetUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority - 1 },
+            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.IssuingUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority + 1 },
+            new ActiveUserRoleDto { OfficeId = dto.OfficeId, UserId = dto.TargetUserId, RoleId = randomizer.Next(), RolePriority = toRole.RolePriority + 1 },
         };
 
         userQueryRepoMock.Setup(r => r.GetActiveUserRoles(dto.OfficeId, new[] { dto.IssuingUserId, dto.TargetUserId }, It.IsAny<CancellationToken>())).ReturnsAsync(activeUserRoleDto.AsEnumerable()).Verifiable();

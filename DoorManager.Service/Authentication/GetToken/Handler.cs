@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -10,9 +9,6 @@ using DoorManager.Entity.Configurations;
 using DoorManager.Entity.DTO;
 using DoorManager.Service.Infrastructure.Interfaces;
 using DoorManager.Service.ServiceResponse;
-using JWT;
-using JWT.Algorithms;
-using JWT.Serializers;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -80,31 +76,5 @@ public class Handler : IRequestHandler<RequestModel, ServiceResult<string>>
         var tokenString = tokenHandler.WriteToken(token);
 
         return tokenString;
-    }
-
-    private string GetToken(long userId, string userName)
-    {
-        var payload = new Dictionary<string, object>
-        {
-            { "id", userId },
-            { "name", userName},
-            { "iss", _options.Issuer },
-            { "aud", _options.Audience },
-        };
-
-        var currentUnixTs = GetUnixTsSeconds(DateTime.UtcNow);
-        var tokenExpirationTs = GetUnixTsSeconds(DateTime.UtcNow.AddDays(_options.TokenExpirationDays));
-        payload.Add("nbf", currentUnixTs);
-        payload.Add("iat", currentUnixTs);
-        payload.Add("exp", tokenExpirationTs);
-
-        var encoder = new JwtEncoder(new HMACSHA512Algorithm(), new JsonNetSerializer(), new JwtBase64UrlEncoder());
-
-        return encoder.Encode(payload, _options.SecretKey);
-    }
-
-    private static int GetUnixTsSeconds(DateTime dateTime)
-    {
-        return (int)dateTime.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
     }
 }

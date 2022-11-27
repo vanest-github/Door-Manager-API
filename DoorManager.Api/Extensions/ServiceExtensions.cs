@@ -1,7 +1,5 @@
-﻿using DoorManager.Service;
-using DoorManager.Service.Infrastructure;
+﻿using DoorManager.Service.Infrastructure;
 using DoorManager.Service.Infrastructure.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace DoorManager.Api.Extensions;
 
